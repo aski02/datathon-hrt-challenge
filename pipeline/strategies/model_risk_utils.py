@@ -1,0 +1,235 @@
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+
+import numpy as np
+import pandas as pd
+from sklearn.base import ClassifierMixin, RegressorMixin, clone
+from sklearn.model_selection import KFold
+
+from pipeline.strategy import sharpe_from_positions
+from pipeline.types import SplitInput
+
+
+def build_risk_features(split: SplitInput) -> pd.DataFrame:
+    features = split.features.copy()
+    X = pd.DataFrame(index=split.sessions)
+
+    base_cols = [
+        "ret_1",
+        "ret_3",
+        "ret_5",
+        "ret_10",
+        "ret_full_seen",
+        "range_full_seen",
+        "close_std_seen",
+        "body_last",
+        "wick_up_last",
+        "wick_down_last",
+        "trend_slope",
+        "range_last_1",
+        "range_mean_last_3",
+        "range_mean_last_5",
+        "range_mean_last_10",
+        "range_std_last_10",
+        "body_mean_last_5",
+        "body_mean_last_10",
+        "wick_up_mean_last_5",
+        "wick_down_mean_last_5",
+        "close_ret_mean_weighted",
+        "abs_close_ret_mean_weighted",
+        "range_mean_weighted",
+        "body_mean_weighted",
+        "recent_vs_early_ret",
+        "recent_vs_early_range",
+        "recent_vs_early_body",
+        "close_position_in_seen_range",
+    ]
+
+    for col in base_cols:
+        X[col] = features[col]
+
+    # A compact set of hand-built path-shape and risk-regime interactions.
+    X["ret_5_minus_ret_10"] = features["ret_5"] - features["ret_10"]
+    X["ret_10_minus_full"] = features["ret_10"] - features["ret_full_seen"]
+    X["wick_balance_last"] = features["wick_up_last"] - features["wick_down_last"]
+    X["wick_balance_mean_5"] = features["wick_up_mean_last_5"] - features["wick_down_mean_last_5"]
+    X["range_last_vs_mean_10"] = features["range_last_1"] / (features["range_mean_last_10"] + 1e-9)
+    X["range_recent_vs_weighted"] = features["range_mean_last_5"] / (features["range_mean_weighted"] + 1e-9)
+    X["body_last_vs_range_last"] = features["body_last"] / (features["range_last_1"] + 1e-9)
+    X["ret_over_range_10"] = features["ret_10"] / (features["range_mean_last_10"] + 1e-9)
+    X["ret_over_range_full"] = features["ret_full_seen"] / (features["range_full_seen"] + 1e-9)
+    X["trend_x_range"] = features["trend_slope"] * features["range_full_seen"]
+    X["trend_x_recent_ret"] = features["trend_slope"] * features["ret_10"]
+    X["close_pos_x_ret10"] = features["close_position_in_seen_range"] * features["ret_10"]
+    X["close_pos_x_range"] = features["close_position_in_seen_range"] * features["range_full_seen"]
+    X["recent_instability"] = features["range_std_last_10"] * features["abs_close_ret_mean_weighted"]
+    X["recent_reversal_pressure"] = -features["recent_vs_early_ret"] * features["close_position_in_seen_range"]
+
+    return X.replace([np.inf, -np.inf], np.nan)
+
+
+class BaseModelRiskFilterStrategy(ABC):
+    """Shared long-or-flat risk-filter logic for model comparisons."""
+
+    name = "base-model-risk-filter"
+
+    def __init__(self) -> None:
+        self.flat_quantile: float = 0.15
+        self.model: RegressorMixin | None = None
+        self.pred_cutoff: float = 0.0
+
+    @abstractmethod
+    def candidate_models(self) -> list[RegressorMixin]:
+        raise NotImplementedError
+
+    def candidate_quantiles(self) -> list[float]:
+        return [0.05, 0.10, 0.15, 0.20, 0.25, 0.30]
+
+    def _build_X(self, split: SplitInput) -> pd.DataFrame:
+        return build_risk_features(split)
+
+    def fit(self, train_split: SplitInput, train_target_return: pd.Series) -> None:
+        X = self._build_X(train_split)
+        y = train_target_return.reindex(train_split.sessions).astype(float)
+
+        splitter = KFold(n_splits=5, shuffle=True, random_state=42)
+        best_score = -np.inf
+        best_model: RegressorMixin | None = None
+        best_quantile = self.flat_quantile
+
+        for model in self.candidate_models():
+            quantile_scores = {q: [] for q in self.candidate_quantiles()}
+            for train_idx, valid_idx in splitter.split(X):
+                X_train = X.iloc[train_idx]
+                X_valid = X.iloc[valid_idx]
+                y_train = y.iloc[train_idx]
+                y_valid = y.iloc[valid_idx]
+
+                fitted = clone(model)
+                fitted.fit(X_train, y_train)
+
+                pred_train = fitted.predict(X_train)
+                pred_valid = fitted.predict(X_valid)
+                for quantile in self.candidate_quantiles():
+                    cutoff = float(np.quantile(pred_train, quantile))
+                    positions = pd.Series((pred_valid > cutoff).astype(float), index=y_valid.index)
+                    quantile_scores[quantile].append(sharpe_from_positions(positions, y_valid))
+
+            for quantile, scores in quantile_scores.items():
+                score = float(np.mean(scores))
+                if np.isfinite(score) and score > best_score:
+                    best_score = score
+                    best_model = clone(model)
+                    best_quantile = quantile
+
+        if best_model is None:
+            raise RuntimeError("No valid model candidate found during Sharpe tuning.")
+
+        self.flat_quantile = best_quantile
+        self.model = best_model.fit(X, y)
+        pred_train = self.model.predict(X)
+        self.pred_cutoff = float(np.quantile(pred_train, self.flat_quantile))
+
+    def predict(self, split: SplitInput) -> pd.Series:
+        if self.model is None:
+            raise RuntimeError("Model not fitted. `fit(...)` must run before `predict(...)`.")
+        X = self._build_X(split)
+        pred = self.model.predict(X)
+        positions = pd.Series((pred > self.pred_cutoff).astype(float), index=split.sessions, name="target_position")
+        return positions
+
+
+class BaseClassifierRiskFilterStrategy(ABC):
+    """Shared long-or-flat risk-filter logic for bad-tail classifiers."""
+
+    name = "base-classifier-risk-filter"
+
+    def __init__(self) -> None:
+        self.bad_tail_quantile: float = 0.20
+        self.flat_quantile: float = 0.15
+        self.model: ClassifierMixin | None = None
+        self.risk_cutoff: float = 0.0
+
+    @abstractmethod
+    def candidate_models(self) -> list[ClassifierMixin]:
+        raise NotImplementedError
+
+    def candidate_bad_tail_quantiles(self) -> list[float]:
+        return [0.15, 0.20, 0.25, 0.30]
+
+    def candidate_flat_quantiles(self) -> list[float]:
+        return [0.05, 0.10, 0.15, 0.20, 0.25, 0.30]
+
+    def _build_X(self, split: SplitInput) -> pd.DataFrame:
+        return build_risk_features(split)
+
+    @staticmethod
+    def _positive_score(model: ClassifierMixin, X: pd.DataFrame) -> np.ndarray:
+        if hasattr(model, "predict_proba"):
+            return model.predict_proba(X)[:, 1]
+        if hasattr(model, "decision_function"):
+            return model.decision_function(X)
+        raise TypeError("Classifier must support predict_proba or decision_function.")
+
+    def fit(self, train_split: SplitInput, train_target_return: pd.Series) -> None:
+        X = self._build_X(train_split)
+        y = train_target_return.reindex(train_split.sessions).astype(float)
+        splitter = KFold(n_splits=5, shuffle=True, random_state=42)
+
+        best_score = -np.inf
+        best_model: ClassifierMixin | None = None
+        best_bad_tail_quantile = self.bad_tail_quantile
+        best_flat_quantile = self.flat_quantile
+
+        for bad_tail_quantile in self.candidate_bad_tail_quantiles():
+            cutoff_y = float(np.quantile(y, bad_tail_quantile))
+            labels = (y <= cutoff_y).astype(int)
+            if labels.nunique() < 2:
+                continue
+
+            for model in self.candidate_models():
+                quantile_scores = {q: [] for q in self.candidate_flat_quantiles()}
+                for train_idx, valid_idx in splitter.split(X):
+                    X_train = X.iloc[train_idx]
+                    X_valid = X.iloc[valid_idx]
+                    y_valid = y.iloc[valid_idx]
+                    labels_train = labels.iloc[train_idx]
+
+                    fitted = clone(model)
+                    fitted.fit(X_train, labels_train)
+
+                    risk_train = self._positive_score(fitted, X_train)
+                    risk_valid = self._positive_score(fitted, X_valid)
+                    for flat_quantile in self.candidate_flat_quantiles():
+                        risk_cutoff = float(np.quantile(risk_train, 1.0 - flat_quantile))
+                        positions = pd.Series((risk_valid < risk_cutoff).astype(float), index=y_valid.index)
+                        quantile_scores[flat_quantile].append(sharpe_from_positions(positions, y_valid))
+
+                for flat_quantile, scores in quantile_scores.items():
+                    score = float(np.mean(scores))
+                    if np.isfinite(score) and score > best_score:
+                        best_score = score
+                        best_model = clone(model)
+                        best_bad_tail_quantile = bad_tail_quantile
+                        best_flat_quantile = flat_quantile
+
+        if best_model is None:
+            raise RuntimeError("No valid classifier candidate found during Sharpe tuning.")
+
+        self.bad_tail_quantile = best_bad_tail_quantile
+        self.flat_quantile = best_flat_quantile
+
+        cutoff_y = float(np.quantile(y, self.bad_tail_quantile))
+        labels = (y <= cutoff_y).astype(int)
+        self.model = best_model.fit(X, labels)
+        risk_train = self._positive_score(self.model, X)
+        self.risk_cutoff = float(np.quantile(risk_train, 1.0 - self.flat_quantile))
+
+    def predict(self, split: SplitInput) -> pd.Series:
+        if self.model is None:
+            raise RuntimeError("Model not fitted. `fit(...)` must run before `predict(...)`.")
+        X = self._build_X(split)
+        risk = self._positive_score(self.model, X)
+        positions = pd.Series((risk < self.risk_cutoff).astype(float), index=split.sessions, name="target_position")
+        return positions

@@ -1,0 +1,63 @@
+template_v3,count,intent,super_family
+secures <NUM> contract with <PARTNER>,35279,contract_win,commercial_deals
+delays product launch in <DOMAIN> segment,5180,launch_delay,product_technology
+faces regulatory review of <DOMAIN> practices,5169,regulatory_review,regulatory_legal
+files for regulatory approval of new <DOMAIN> offering,5144,regulatory_approval_filing,regulatory_legal
+"reports record quarterly revenue, up <NUM> year-over-year",5130,revenue_record_up,financial_performance
+wins industry award for excellence in <DOMAIN>,5114,award_recognition,product_technology
+launches next-generation <DOMAIN> platform,5091,next_gen_launch,product_technology
+recalls products in <DOMAIN> line due to quality concerns,5087,quality_recall,product_technology
+names new head of <DOMAIN> division,5079,division_leadership_change,leadership_governance_ir
+misses quarterly revenue estimates by <NUM>,5071,revenue_miss,financial_performance
+sees <NUM> margin improvement in latest quarter,5061,margin_improvement,financial_performance
+announces breakthrough in <DOMAIN>,5058,product_breakthrough,product_technology
+sees mixed results in <DOMAIN> pilot program,5057,pilot_mixed,product_technology
+explores strategic alternatives for <DOMAIN> unit,5045,strategic_alternatives,strategy_ma_reorg
+reports rising costs pressuring margins in <DOMAIN>,5037,margin_pressure,financial_performance
+files routine patent applications in <DOMAIN>,5011,patent_filing,product_technology
+sees <NUM> drop in new customer orders this quarter,4998,new_orders_down,financial_performance
+revises long-term strategy with focus on <DOMAIN>,4994,strategy_focus_domain,strategy_ma_reorg
+begins scheduled maintenance of <DOMAIN> systems,4963,scheduled_maintenance,product_technology
+reports <NUM> increase in customer acquisition,4944,customer_acq_up,financial_performance
+faces class action over <DOMAIN> service disruption,4934,legal_class_action,regulatory_legal
+announces <NUM> share buyback program,4904,share_buyback,guidance_capital
+reports <NUM> decline in operating income,4899,operating_income_down,financial_performance
+completes strategic acquisition to strengthen <DOMAIN>,4545,strategic_acquisition,strategy_ma_reorg
+to host investor day focused on <DOMAIN> strategy,4492,investor_day_focus_domain,leadership_governance_ir
+warns of supply chain disruptions affecting <REGION> operations,4151,supply_chain_disruption_region,geo_operations
+completes planned facility upgrade in <REGION>,4092,facility_upgrade_region,geo_operations
+announces significant capital expenditure plan for <REGION>,4089,capex_region,guidance_capital
+loses key contract in <REGION> to competitor,4076,contract_loss_region,commercial_deals
+expands operations into <REGION> markets,4047,expansion_region,geo_operations
+"reports strong demand in <REGION>, raises outlook",4000,demand_strong_raise_outlook,guidance_capital
+withdraws from <REGION> market citing unfavorable conditions,3979,withdraw_region,geo_operations
+reports unexpected decline in <REGION> revenue,3961,region_revenue_decline,financial_performance
+opens new office in <REGION>,3915,office_opening_region,geo_operations
+signs multi-year partnership with <PARTNER>,3561,partnership,commercial_deals
+enters joint venture with <PARTNER>,3484,joint_venture,commercial_deals
+<ROLE> steps down unexpectedly citing personal reasons,2566,exec_steps_down,leadership_governance_ir
+<ROLE> addresses investor concerns in open letter,2549,exec_investor_letter,leadership_governance_ir
+beats analyst expectations with strong earnings growth,531,earnings_beat,financial_performance
+"announces restructuring plan, cites challenging market conditions",531,restructuring_plan,strategy_ma_reorg
+announces major organizational restructuring,523,major_restructuring,strategy_ma_reorg
+to present at capital markets day,521,event_present,leadership_governance_ir
+to present at annual industry forum,519,event_present,leadership_governance_ir
+confirms participation in emerging markets forum,518,event_confirm,leadership_governance_ir
+"in talks for potential merger, details undisclosed",516,merger_talks,strategy_ma_reorg
+raises full-year guidance citing robust demand,515,guidance_raise,guidance_capital
+to present at global innovation summit,508,event_present,leadership_governance_ir
+completes strategic acquisition to strengthen data analytics,507,strategic_acquisition,strategy_ma_reorg
+confirms participation in global innovation summit,503,event_confirm,leadership_governance_ir
+to host investor day focused on data analytics strategy,501,investor_day_focus_domain,leadership_governance_ir
+confirms participation in tech leadership conference,501,event_confirm,leadership_governance_ir
+confirms participation in corporate strategy symposium,499,event_confirm,leadership_governance_ir
+confirms participation in annual industry forum,497,event_confirm,leadership_governance_ir
+lowers full-year guidance amid softening demand,496,guidance_lower,guidance_capital
+achieves key regulatory milestone ahead of schedule,495,regulatory_milestone,regulatory_legal
+to present at corporate strategy symposium,495,event_present,leadership_governance_ir
+confirms participation in capital markets day,491,event_confirm,leadership_governance_ir
+schedules annual shareholder meeting for next month,489,shareholder_meeting,leadership_governance_ir
+publishes annual sustainability report,487,sustainability_report,leadership_governance_ir
+to present at emerging markets forum,484,event_present,leadership_governance_ir
+board meeting to discuss major strategic initiative,476,board_meeting_strategy,strategy_ma_reorg
+to present at tech leadership conference,468,event_present,leadership_governance_ir

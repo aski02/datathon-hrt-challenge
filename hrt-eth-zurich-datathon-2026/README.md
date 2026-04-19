@@ -1,5 +1,5 @@
 
-# Zurich Datathon 2026: Simulated Market Close Prediction
+# Datathon 2026: HRT Challenge - Simulated Market Close Prediction
 
 ## Challenge
 

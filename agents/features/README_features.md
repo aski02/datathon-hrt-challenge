@@ -1,6 +1,6 @@
 # Price-Only Feature Pipeline
 
-This folder provides a reusable, leakage-safe, session-level feature builder for the Zurich Datathon 2026 challenge.
+This folder provides a reusable, leakage-safe, session-level feature builder for the Datathon 2026 HRT Challenge.
 
 ## Files
 

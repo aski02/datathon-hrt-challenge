@@ -1,6 +1,6 @@
-# HRT Zurich Datathon 2026
+# Datathon 2026: HRT Challenge
 
-This repo contains our hackathon pipeline and the model we chose to submit.
+This repo contains our Datathon pipeline for the HRT Challenge and the model we chose to submit.
 
 ## Chosen Submission Model
 

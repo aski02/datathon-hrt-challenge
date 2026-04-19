@@ -39,8 +39,8 @@ Then run one command to generate the final submission CSV.
 Run this from the repository root:
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+python3 -m venv venv
+source venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
@@ -48,8 +48,8 @@ pip install -r requirements.txt
 On Windows (PowerShell):
 
 ```powershell
-py -m venv .venv
-.\.venv\Scripts\Activate.ps1
+py -m venv venv
+.\venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```

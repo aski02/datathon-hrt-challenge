@@ -48,19 +48,19 @@ Outputs are indexed by `session` and deterministic in column order.
 
 ## Build Feature Store
 
-Run from `/Users/maxkromer/Development/datathon-eth/datathon-hrt-challenge/agents/features`:
+Run from `agents/features`:
 
 ```bash
 python -m src.build_feature_store
 ```
 
-This reads default parquet inputs from:
+By default this reads parquet inputs from:
 
-`/Users/maxkromer/Development/datathon-eth/datathon-hrt-challenge/hrt-eth-zurich-datathon-2026/data`
+`hrt-eth-zurich-datathon-2026/data`
 
 and writes to:
 
-`/Users/maxkromer/Development/datathon-eth/datathon-hrt-challenge/agents/features/feature_store`
+`agents/features/feature_store`
 
 ### Optional arguments
 

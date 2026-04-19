@@ -23,6 +23,7 @@ From repo root:
 ```bash
 python3 -m venv venv
 source venv/bin/activate
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
@@ -61,5 +62,5 @@ Output:
 
 ## Other Docs
 
-- Pipeline details: [pipeline/README.md](/Users/niklasschmolenski/Desktop/Sideprojects/datathon-hrt-challenge/pipeline/README.md)
-- Challenge brief: [hrt-eth-zurich-datathon-2026/README.md](/Users/niklasschmolenski/Desktop/Sideprojects/datathon-hrt-challenge/hrt-eth-zurich-datathon-2026/README.md)
+- Pipeline details: `pipeline/README.md`
+- Challenge brief: `hrt-eth-zurich-datathon-2026/README.md`

@@ -2,6 +2,33 @@
 
 This folder provides a clean workflow for testing and exporting strategies.
 
+## Chosen Submission Model
+
+The current submission model is:
+
+- `pipeline/strategies/subspace_btp_hdoc_ensemble.py`
+
+It ensembles:
+
+- `subspace_bagged_downside_ranker`
+- `btp-rank-hdoc`
+
+To run it from repo root:
+
+```bash
+./venv/bin/python -m pipeline.runner \
+  --strategy-file pipeline/strategies/subspace_btp_hdoc_ensemble.py \
+  --output-name subspace-btp-hdoc-ensemble_all_test.csv
+```
+
+If the subspace feature store is missing, build it first:
+
+```bash
+cd agents/features
+../../venv/bin/python -m src.build_feature_store
+cd ../..
+```
+
 ## Goal
 
 For a new strategy, you only need **one Python file** with a `predict(split)` implementation.

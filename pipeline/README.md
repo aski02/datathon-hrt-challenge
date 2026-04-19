@@ -97,3 +97,15 @@ Useful flags:
 
 - `pipeline/strategies/always_long.py`
 - `pipeline/strategies/template_strategy.py`
+
+## Submission Ensembling
+
+To blend existing submission CSV files (for example model A + model B), use:
+
+```bash
+python -m pipeline.ensemble_submissions --help
+```
+
+Detailed instructions and examples are in:
+
+- `pipeline/README_ENSEMBLING.md`

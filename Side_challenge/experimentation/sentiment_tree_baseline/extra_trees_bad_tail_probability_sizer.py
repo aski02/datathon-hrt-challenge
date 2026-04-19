@@ -8,7 +8,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.model_selection import KFold
 from sklearn.pipeline import Pipeline
 
-from Side_challenge.experimentation.sentiment_tree_baseline.model_risk_utils import (
+from side_challenge.experimentation.sentiment_tree_baseline.model_risk_utils import (
     BaseClassifierSizedLongOnlyStrategy,
 )
 from pipeline.strategy import sharpe_from_positions

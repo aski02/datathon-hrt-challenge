@@ -9,7 +9,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-
 NUM_PAT = re.compile(
     r"(?:\$\s*)?\d+(?:[\.,]\d+)?\s*(?:[kmbt]|bn|mn|billion|million|thousand)?%?",
     re.I,
@@ -57,11 +56,20 @@ CANON_RULES: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"\bin\s+.+\s+pilot\s+program\b", re.I), "in <DOMAIN> pilot program"),
     (re.compile(r"\bfocus\s+on\s+.+$", re.I), "focus on <DOMAIN>"),
     (re.compile(r"\bfor\s+excellence\s+in\s+.+$", re.I), "for excellence in <DOMAIN>"),
-    (re.compile(r"\bfiles\s+routine\s+patent\s+applications\s+in\s+.+$", re.I), "files routine patent applications in <DOMAIN>"),
-    (re.compile(r"\breports\s+rising\s+costs\s+pressuring\s+margins\s+in\s+.+$", re.I), "reports rising costs pressuring margins in <DOMAIN>"),
+    (
+        re.compile(r"\bfiles\s+routine\s+patent\s+applications\s+in\s+.+$", re.I),
+        "files routine patent applications in <DOMAIN>",
+    ),
+    (
+        re.compile(r"\breports\s+rising\s+costs\s+pressuring\s+margins\s+in\s+.+$", re.I),
+        "reports rising costs pressuring margins in <DOMAIN>",
+    ),
     (re.compile(r"\blaunches\s+next-generation\s+.+\s+platform\b", re.I), "launches next-generation <DOMAIN> platform"),
     (re.compile(r"\bannounces\s+breakthrough\s+in\s+.+$", re.I), "announces breakthrough in <DOMAIN>"),
-    (re.compile(r"\bfaces\s+class\s+action\s+over\s+.+\s+service\s+disruption\b", re.I), "faces class action over <DOMAIN> service disruption"),
+    (
+        re.compile(r"\bfaces\s+class\s+action\s+over\s+.+\s+service\s+disruption\b", re.I),
+        "faces class action over <DOMAIN> service disruption",
+    ),
     (re.compile(r"\binto\s+.+\s+markets\b", re.I), "into <REGION> markets"),
     (re.compile(r"\bopens\s+new\s+office\s+in\s+.+$", re.I), "opens new office in <REGION>"),
     (
@@ -76,9 +84,18 @@ CANON_RULES: list[tuple[re.Pattern[str], str]] = [
         re.compile(r"\bwarns\s+of\s+supply\s+chain\s+disruptions\s+affecting\s+.+\s+operations\b", re.I),
         "warns of supply chain disruptions affecting <REGION> operations",
     ),
-    (re.compile(r"\bcompletes\s+planned\s+facility\s+upgrade\s+in\s+.+$", re.I), "completes planned facility upgrade in <REGION>"),
-    (re.compile(r"\bloses\s+key\s+contract\s+in\s+.+\s+to\s+competitor\b", re.I), "loses key contract in <REGION> to competitor"),
-    (re.compile(r"\breports\s+unexpected\s+decline\s+in\s+.+\s+revenue\b", re.I), "reports unexpected decline in <REGION> revenue"),
+    (
+        re.compile(r"\bcompletes\s+planned\s+facility\s+upgrade\s+in\s+.+$", re.I),
+        "completes planned facility upgrade in <REGION>",
+    ),
+    (
+        re.compile(r"\bloses\s+key\s+contract\s+in\s+.+\s+to\s+competitor\b", re.I),
+        "loses key contract in <REGION> to competitor",
+    ),
+    (
+        re.compile(r"\breports\s+unexpected\s+decline\s+in\s+.+\s+revenue\b", re.I),
+        "reports unexpected decline in <REGION> revenue",
+    ),
     (
         re.compile(r"\bwithdraws\s+from\s+.+\s+market\s+citing\s+unfavorable\s+conditions\b", re.I),
         "withdraws from <REGION> market citing unfavorable conditions",
@@ -86,11 +103,16 @@ CANON_RULES: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"\bappoints\s+new\s+.+\s+to\s+board\b", re.I), "appoints new <ROLE> to board"),
     (re.compile(r"\bnames\s+new\s+head\s+of\s+.+\s+division\b", re.I), "names new head of <DOMAIN> division"),
     (
-        re.compile(r"\b(?:ceo|cfo|cto|chief\s+[a-z]+\s+officer)\s+steps\s+down\s+unexpectedly\s+citing\s+personal\s+reasons\b", re.I),
+        re.compile(
+            r"\b(?:ceo|cfo|cto|chief\s+[a-z]+\s+officer)\s+steps\s+down\s+unexpectedly\s+citing\s+personal\s+reasons\b",
+            re.I,
+        ),
         "<ROLE> steps down unexpectedly citing personal reasons",
     ),
     (
-        re.compile(r"\b(?:ceo|cfo|cto|chief\s+[a-z]+\s+officer)\s+addresses\s+investor\s+concerns\s+in\s+open\s+letter\b", re.I),
+        re.compile(
+            r"\b(?:ceo|cfo|cto|chief\s+[a-z]+\s+officer)\s+addresses\s+investor\s+concerns\s+in\s+open\s+letter\b", re.I
+        ),
         "<ROLE> addresses investor concerns in open letter",
     ),
 ]
@@ -128,12 +150,21 @@ INTENT_RULES: list[tuple[str, re.Pattern[str]]] = [
     ("office_opening_region", re.compile(r"^opens new office in <REGION>$")),
     ("facility_upgrade_region", re.compile(r"^completes planned facility upgrade in <REGION>$")),
     ("withdraw_region", re.compile(r"^withdraws from <REGION> market citing unfavorable conditions$")),
-    ("supply_chain_disruption_region", re.compile(r"^warns of supply chain disruptions affecting <REGION> operations$")),
-    ("strategic_acquisition", re.compile(r"^completes strategic acquisition to strengthen (?:<DOMAIN>|data analytics)$")),
+    (
+        "supply_chain_disruption_region",
+        re.compile(r"^warns of supply chain disruptions affecting <REGION> operations$"),
+    ),
+    (
+        "strategic_acquisition",
+        re.compile(r"^completes strategic acquisition to strengthen (?:<DOMAIN>|data analytics)$"),
+    ),
     ("merger_talks", re.compile(r"^in talks for potential merger, details undisclosed$")),
     ("strategy_focus_domain", re.compile(r"^revises long-term strategy with focus on <DOMAIN>$")),
     ("strategic_alternatives", re.compile(r"^explores strategic alternatives for <DOMAIN> unit$")),
-    ("investor_day_focus_domain", re.compile(r"^to host investor day focused on (?:<DOMAIN>|data analytics) strategy$")),
+    (
+        "investor_day_focus_domain",
+        re.compile(r"^to host investor day focused on (?:<DOMAIN>|data analytics) strategy$"),
+    ),
     ("major_restructuring", re.compile(r"^announces major organizational restructuring$")),
     ("restructuring_plan", re.compile(r"^announces restructuring plan, cites challenging market conditions$")),
     ("division_leadership_change", re.compile(r"^names new head of <DOMAIN> division$")),
@@ -343,17 +374,13 @@ def build_catalog(df: pd.DataFrame) -> pd.DataFrame:
             how="left",
         )
 
-    rows_by_dataset = (
-        df.groupby(["template", "dataset"]).size().unstack(fill_value=0).reset_index()
-    )
+    rows_by_dataset = df.groupby(["template", "dataset"]).size().unstack(fill_value=0).reset_index()
     for c in ["train_seen", "train_unseen", "test_public_seen", "test_private_seen"]:
         if c not in rows_by_dataset.columns:
             rows_by_dataset[c] = 0
     base = base.merge(rows_by_dataset, on="template", how="left")
 
-    rows_by_visibility = (
-        df.groupby(["template", "visibility"]).size().unstack(fill_value=0).reset_index()
-    )
+    rows_by_visibility = df.groupby(["template", "visibility"]).size().unstack(fill_value=0).reset_index()
     for c in ["seen", "unseen"]:
         if c not in rows_by_visibility.columns:
             rows_by_visibility[c] = 0
@@ -374,10 +401,7 @@ def build_catalog(df: pd.DataFrame) -> pd.DataFrame:
         .rename("rows_seen_late_40_49")
     )
     early_seen = (
-        df[(df["visibility"] == "seen") & (df["bar_ix"] <= 9)]
-        .groupby("template")
-        .size()
-        .rename("rows_seen_early_0_9")
+        df[(df["visibility"] == "seen") & (df["bar_ix"] <= 9)].groupby("template").size().rename("rows_seen_early_0_9")
     )
     base = base.merge(late_seen, on="template", how="left")
     base = base.merge(early_seen, on="template", how="left")
@@ -390,9 +414,7 @@ def build_catalog(df: pd.DataFrame) -> pd.DataFrame:
     base["train_share"] = safe_ratio(base["rows_train"], base["total_rows"])
     base["test_share"] = safe_ratio(base["rows_test"], base["total_rows"])
 
-    per_session = (
-        df.groupby(["template", "session_uid"]).size().rename("rows_in_session").reset_index()
-    )
+    per_session = df.groupby(["template", "session_uid"]).size().rename("rows_in_session").reset_index()
     per_session_stats = per_session.groupby("template", as_index=False).agg(
         mean_rows_per_session=("rows_in_session", "mean"),
         median_rows_per_session=("rows_in_session", "median"),
@@ -430,7 +452,9 @@ def write_summary(df: pd.DataFrame, catalog: pd.DataFrame, out_path: Path) -> No
     super_counts["share"] = super_counts["total_rows"] / float(total_rows)
 
     direction_counts = (
-        catalog.groupby("direction_prior", as_index=False)["total_rows"].sum().sort_values("total_rows", ascending=False)
+        catalog.groupby("direction_prior", as_index=False)["total_rows"]
+        .sum()
+        .sort_values("total_rows", ascending=False)
     )
     direction_counts["share"] = direction_counts["total_rows"] / float(total_rows)
 
@@ -441,9 +465,13 @@ def write_summary(df: pd.DataFrame, catalog: pd.DataFrame, out_path: Path) -> No
     lines.append("")
     lines.append("## Scope")
     lines.append("")
-    lines.append("- Sources: `headlines_seen_train`, `headlines_unseen_train`, `headlines_seen_public_test`, `headlines_seen_private_test`.")
+    lines.append(
+        "- Sources: `headlines_seen_train`, `headlines_unseen_train`, `headlines_seen_public_test`, `headlines_seen_private_test`."
+    )
     lines.append("- Company tokens (first 2 words) are treated as non-structural features.")
-    lines.append("- Templates are canonicalized by replacing numbers, regions, partner names, roles, and domain phrases with placeholders.")
+    lines.append(
+        "- Templates are canonicalized by replacing numbers, regions, partner names, roles, and domain phrases with placeholders."
+    )
     lines.append("")
     lines.append("## Key Numbers")
     lines.append("")
@@ -475,10 +503,14 @@ def write_summary(df: pd.DataFrame, catalog: pd.DataFrame, out_path: Path) -> No
     lines.append("")
     lines.append("## How To Use This Catalog")
     lines.append("")
-    lines.append("- Start with `template`, `intent`, `super_family`, `direction_prior` as low-cardinality NLP features.")
+    lines.append(
+        "- Start with `template`, `intent`, `super_family`, `direction_prior` as low-cardinality NLP features."
+    )
     lines.append("- Add timing features from this catalog (`mean_bar_ix`, `late_seen_share`, `seen_share`).")
     lines.append("- Use `example_headlines_top3` to manually inspect edge templates before modeling.")
-    lines.append("- Prefer template-level statistics over company names for generalization across independent sessions.")
+    lines.append(
+        "- Prefer template-level statistics over company names for generalization across independent sessions."
+    )
     lines.append("")
     lines.append("## Main CSV")
     lines.append("")

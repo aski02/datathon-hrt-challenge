@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import inspect
+import logging
 import re
 from pathlib import Path
 from types import ModuleType
@@ -70,9 +71,7 @@ def _validate_predict_signature(callable_obj: Callable[..., object], owner: str)
 def _validate_fit_signature(callable_obj: Callable[..., object], owner: str) -> None:
     positional, required = _positional_parts(callable_obj)
     if len(positional) != 2 or not (1 <= len(required) <= 2):
-        raise TypeError(
-            f"`{owner}` fit signature must be `fit(train_split, train_target_return)`."
-        )
+        raise TypeError(f"`{owner}` fit signature must be `fit(train_split, train_target_return)`.")
 
 
 def _fit_strategy_once(strategy: Strategy, context: PipelineContext) -> int:
@@ -128,12 +127,18 @@ def _instantiate_strategy(module: ModuleType, path: Path, symbol: str) -> Strate
     return strategy  # type: ignore[return-value]
 
 
-def _build_submission_frame(context: PipelineContext, public_positions: pd.Series, private_positions: pd.Series) -> pd.DataFrame:
-    public_frame = pd.DataFrame({"session": context.public_test.sessions.to_numpy(), "target_position": public_positions.to_numpy()})
+def _build_submission_frame(
+    context: PipelineContext, public_positions: pd.Series, private_positions: pd.Series
+) -> pd.DataFrame:
+    public_frame = pd.DataFrame(
+        {"session": context.public_test.sessions.to_numpy(), "target_position": public_positions.to_numpy()}
+    )
     private_frame = pd.DataFrame(
         {"session": context.private_test.sessions.to_numpy(), "target_position": private_positions.to_numpy()}
     )
-    submission = pd.concat([public_frame, private_frame], ignore_index=True).sort_values("session").reset_index(drop=True)
+    submission = (
+        pd.concat([public_frame, private_frame], ignore_index=True).sort_values("session").reset_index(drop=True)
+    )
 
     expected_sessions = set(context.public_test.sessions.tolist()) | set(context.private_test.sessions.tolist())
     submission_sessions = set(submission["session"].tolist())
@@ -182,11 +187,20 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Also write <name>_public.csv and <name>_private.csv.",
     )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Show strategy-level diagnostic logs while fitting and predicting.",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
+    logging.basicConfig(
+        level=logging.INFO if args.verbose else logging.WARNING,
+        format="%(message)s",
+    )
     context = build_context(args.data_dir)
     module = _load_module_from_path(args.strategy_file)
     strategy = _instantiate_strategy(module, args.strategy_file, args.entrypoint)

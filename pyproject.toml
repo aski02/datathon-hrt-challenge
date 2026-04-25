@@ -1,0 +1,52 @@
+[project]
+name = "hrt-datathon-2026"
+version = "0.1.0"
+description = "Reproducible trading-strategy pipeline for the 2026 ETH Analytics Club HRT Datathon challenge."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "altair>=5.0",
+    "numpy>=2.0",
+    "pandas>=2.2",
+    "pyarrow>=16.0",
+    "scikit-learn>=1.5",
+    "streamlit>=1.45",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+exclude = [
+    ".codex_pydeps",
+    "venv",
+    "submission",
+    "agents/features/feature_store",
+    "side_challenges",
+    "hrt-eth-zurich-datathon-2026",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]
+
+[tool.black]
+line-length = 120
+target-version = ["py311"]
+extend-exclude = '''
+/(
+  \.codex_pydeps
+  | venv
+  | submission
+  | agents/features/feature_store
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 120
+skip = [
+    ".codex_pydeps",
+    "venv",
+    "submission",
+    "agents/features/feature_store",
+]

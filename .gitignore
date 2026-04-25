@@ -60,6 +60,10 @@ tmp/
 # --- Generated outputs ---
 /submission/*.csv
 /submission/**/*.csv
+/submission/*_diagnostics.csv
+/agents/features/feature_store/*
+!/agents/features/feature_store/.gitkeep
+/side_challenges/**/hybrid_sentiments*.csv
 /hrt-eth-zurich-datathon-2026/submissions/*.csv
 
 # --- Codex local runtime deps ---

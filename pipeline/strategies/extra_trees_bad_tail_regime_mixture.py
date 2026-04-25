@@ -75,10 +75,15 @@ class ExtraTreesBadTailRegimeMixtureStrategy(ExtraTreesBadTailProbabilitySizerCa
 
         g = rows.groupby("session", sort=False)
         prior_count = g.size().reindex(sessions, fill_value=0).astype(float)
-        sign_counts = rows.assign(
-            pos=(rows["prior_sign"] > 0).astype(int),
-            neg=(rows["prior_sign"] < 0).astype(int),
-        ).groupby("session")[["pos", "neg"]].sum().reindex(sessions, fill_value=0)
+        sign_counts = (
+            rows.assign(
+                pos=(rows["prior_sign"] > 0).astype(int),
+                neg=(rows["prior_sign"] < 0).astype(int),
+            )
+            .groupby("session")[["pos", "neg"]]
+            .sum()
+            .reindex(sessions, fill_value=0)
+        )
         disagreement = np.minimum(sign_counts["pos"], sign_counts["neg"]) / prior_count.clip(lower=1.0)
 
         recent3_g = recent3_rows.groupby("session", sort=False)

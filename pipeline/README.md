@@ -1,19 +1,9 @@
 # Strategy Pipeline
 
-This folder provides a clean workflow for testing and exporting strategies.
+`pipeline/` is the supported package for loading challenge data, fitting one
+strategy, validating positions, and writing a submission CSV.
 
-## Chosen Submission Model
-
-The current submission model is:
-
-- `pipeline/strategies/subspace_btp_hdoc_ensemble.py`
-
-It ensembles:
-
-- `subspace_bagged_downside_ranker`
-- `btp-rank-hdoc`
-
-To run it from repo root:
+## Final Strategy
 
 ```bash
 ./venv/bin/python -m pipeline.runner \
@@ -21,7 +11,7 @@ To run it from repo root:
   --output-name subspace-btp-hdoc-ensemble_all_test.csv
 ```
 
-If the subspace feature store is missing, build it first:
+If the feature store is missing, build it first:
 
 ```bash
 cd agents/features
@@ -29,110 +19,71 @@ cd agents/features
 cd ../..
 ```
 
-## Goal
+## Strategy Contract
 
-For a new strategy, you only need **one Python file** with a `predict(split)` implementation.
-Then run one command to generate the final submission CSV.
+A strategy file may expose any of these entrypoints:
 
-## Setup (Generic)
+- `build_strategy()` returning an object with `predict(split)`
+- a module-level `strategy` object with `predict(split)`
+- a module-level `predict(split)` function
+- a custom symbol selected with `--entrypoint`
 
-Run this from the repository root:
-
-```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-On Windows (PowerShell):
-
-```powershell
-py -m venv venv
-.\venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-## Quick Start
-
-1. Copy `pipeline/strategies/template_strategy.py` and rename it, e.g. `pipeline/strategies/my_strategy.py`.
-2. Edit your logic in the `predict` method.
-3. Run from repo root:
-
-```bash
-python -m pipeline.runner --strategy-file pipeline/strategies/my_strategy.py
-```
-
-This writes:
-- `submission/<strategy_name>_all_test.csv`
-
-The file is validated to contain:
-- columns: `session,target_position`
-- one unique row per test session
-- total rows = public + private test sessions (currently 20,000)
-- finite numeric `target_position` values only (no `NaN`/`inf`)
-
-## Strategy API
-
-Supported strategy entry styles:
-- `build_strategy()` (default entrypoint) returning an object with `predict(...)`
-- module-level `predict(split)` function (no class required)
-- custom symbol via `--entrypoint <symbol>`
-
-All styles resolve to:
+The supported object API is:
 
 ```python
-def predict(self, split) -> pd.Series | pd.DataFrame | np.ndarray
+def fit(self, train_split, train_target_return) -> None:
+    ...
+
+def predict(self, split) -> pd.Series | pd.DataFrame | np.ndarray:
+    ...
 ```
 
-Optional training hook:
+`fit` is optional. The runner calls it once before test prediction.
 
-```python
-def fit(self, train_split, train_target_return) -> None
-```
+`split` contains:
 
-Where:
-- `split.name` is one of `train_seen`, `public_seen`, `private_seen`
-- `split.sessions` is the target session index for that split
-- `split.features` contains precomputed session-level features:
-  - numeric bar features (`ret_*`, `range_full_seen`, etc.)
-  - `headline_text` concatenation for text models
-- `fit(...)` receives `train_target_return` derived from `unseen_train` for supervised fitting
+- `name`: `train_seen`, `public_seen`, or `private_seen`
+- `sessions`: target session index
+- `bars`: split-local seen OHLC bars
+- `headlines`: split-local seen headlines
+- `features`: deterministic session-level features built from seen data only
 
-Leakage guardrails:
-- Runner calls `fit(...)` exactly once before any test prediction.
-- `predict(...)` receives only split-local data, not global train/public/private context.
+`predict` may return:
 
-Output options from `predict`:
-- `pd.Series` indexed by session
-- `pd.DataFrame` with `session,target_position`
-- array/list with one value per split session
+- a `pd.Series` indexed by session
+- a `pd.DataFrame` with `session,target_position`
+- a one-dimensional array/list with one value per split session
 
-## CLI Options
+The runner validates missing sessions, duplicate sessions, and non-finite target
+positions before writing output.
+
+## Strategy Catalog
+
+`pipeline/strategies/` intentionally contains both the final submission model
+and alternate hackathon strategies. Any strategy file exposing `build_strategy`
+can be run through the same runner:
 
 ```bash
-python -m pipeline.runner --help
+./venv/bin/python -m pipeline.runner --strategy-file pipeline/strategies/<strategy_file>.py
 ```
 
-Useful flags:
-- `--entrypoint build_strategy` (default)
-- `--output-name custom.csv`
-- `--write-split-files` to also emit `*_public.csv` and `*_private.csv`
+Key files:
 
-## Included Examples
+- `subspace_btp_hdoc_ensemble.py`: final submitted ensemble.
+- `subspace_bagged_downside_ranker.py`: price feature-store ranker used by the final ensemble.
+- `btp_rank_hdoc.py` and `btp_rank_tpl.py`: headline-template/document rankers.
+- `extra_trees_bad_tail_*`: tree-based downside-risk variants.
+- `always_long*.py` and `robust_long_price_disagreement.py`: simpler baselines and ablations.
+- `template_strategy.py`: copyable strategy skeleton.
 
-- `pipeline/strategies/always_long.py`
-- `pipeline/strategies/template_strategy.py`
+See `pipeline/strategies/README.md` for the catalog.
 
 ## Submission Ensembling
 
-To blend existing submission CSV files (for example model A + model B), use:
+To blend two existing submission CSVs:
 
 ```bash
-python -m pipeline.ensemble_submissions --help
+./venv/bin/python -m pipeline.ensemble_submissions --help
 ```
 
-Detailed instructions and examples are in:
-
-- `pipeline/README_ENSEMBLING.md`
+See `pipeline/README_ENSEMBLING.md` for supported blend modes.

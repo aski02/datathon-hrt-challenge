@@ -18,8 +18,7 @@ class Strategy(Protocol):
 
     name: str
 
-    def predict(self, split: SplitInput) -> pd.Series | pd.DataFrame | np.ndarray:
-        ...
+    def predict(self, split: SplitInput) -> pd.Series | pd.DataFrame | np.ndarray: ...
 
 
 def coerce_positions(

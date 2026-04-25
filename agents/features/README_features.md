@@ -1,13 +1,15 @@
 # Price-Only Feature Pipeline
 
 This folder provides a reusable, leakage-safe, session-level feature builder for the Datathon 2026 HRT Challenge.
+Generated feature-store outputs are local artifacts and are ignored by git.
 
 ## Files
 
 - `src/features_price.py`: core feature engineering API.
 - `src/build_feature_store.py`: CLI to build and persist train/public/private feature tables.
 - `tests/test_features_price.py`: focused tests for shape, leakage safety, and target correctness.
-- `memory.md`: assumptions and implementation decisions.
+- `DECISIONS.md`: assumptions and implementation decisions.
+- `feature_store/`: generated parquet outputs used by the final strategy.
 
 ## Public API
 
@@ -51,7 +53,7 @@ Outputs are indexed by `session` and deterministic in column order.
 Run from `agents/features`:
 
 ```bash
-python -m src.build_feature_store
+../../venv/bin/python -m src.build_feature_store
 ```
 
 By default this reads parquet inputs from:
@@ -65,7 +67,7 @@ and writes to:
 ### Optional arguments
 
 ```bash
-python -m src.build_feature_store \
+../../venv/bin/python -m src.build_feature_store \
   --seen-train /path/to/bars_seen_train.parquet \
   --unseen-train /path/to/bars_unseen_train.parquet \
   --seen-public-test /path/to/bars_seen_public_test.parquet \
@@ -81,5 +83,5 @@ python -m src.build_feature_store \
 From the same folder:
 
 ```bash
-python -m unittest tests/test_features_price.py
+../../venv/bin/python -m unittest tests/test_features_price.py
 ```

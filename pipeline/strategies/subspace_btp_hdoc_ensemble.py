@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 import numpy as np
@@ -17,6 +18,8 @@ from pipeline.strategies.subspace_bagged_downside_ranker import (
 )
 from pipeline.strategy import sharpe_from_positions
 from pipeline.types import SplitInput
+
+LOGGER = logging.getLogger(__name__)
 
 
 class BlendConfig:
@@ -113,7 +116,7 @@ class SubspaceBtpHdocEnsembleStrategy:
         self._selected_config = best_config
         self._ensemble_train_sharpe = float(best_score)
 
-        print(
+        LOGGER.info(
             "[subspace-btp-hdoc-ensemble] "
             f"subspace_train_sharpe={self._subspace_train_sharpe:.4f}, "
             f"hdoc_train_sharpe={self._hdoc_train_sharpe:.4f}, "

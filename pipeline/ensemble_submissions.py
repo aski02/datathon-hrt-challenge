@@ -97,7 +97,9 @@ def blend_disagreement_guard(anchor: np.ndarray, other: np.ndarray, max_w_other:
     return _perm_map_to_reference(score, anchor)
 
 
-def _compute_diagnostics(name: str, positions: np.ndarray, anchor: np.ndarray, other: np.ndarray) -> dict[str, float | str]:
+def _compute_diagnostics(
+    name: str, positions: np.ndarray, anchor: np.ndarray, other: np.ndarray
+) -> dict[str, float | str]:
     return {
         "name": name,
         "mean": float(np.mean(positions)),
@@ -139,7 +141,9 @@ def _build_parser() -> argparse.ArgumentParser:
         default=0,
         help="Which --inputs file is the anchor model (default: 0).",
     )
-    parser.add_argument("--mode", choices=["single", "auto"], default="single", help="single = one output, auto = sweep.")
+    parser.add_argument(
+        "--mode", choices=["single", "auto"], default="single", help="single = one output, auto = sweep."
+    )
     parser.add_argument(
         "--method",
         choices=["level_qmap", "rank_perm", "disagreement_guard"],
@@ -258,8 +262,7 @@ def _auto_mode(args: argparse.Namespace, sessions: np.ndarray, anchor: np.ndarra
     for max_w_other in guard_maxw:
         for power in guard_power:
             name = (
-                f"{args.prefix}_disagreement_guard_mw{_safe_float_token(max_w_other)}"
-                f"_p{_safe_float_token(power)}"
+                f"{args.prefix}_disagreement_guard_mw{_safe_float_token(max_w_other)}" f"_p{_safe_float_token(power)}"
             )
             positions = blend_disagreement_guard(anchor, other, max_w_other=max_w_other, power=power)
             path = args.output_dir / f"{name}_all_test.csv"
@@ -298,4 +301,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

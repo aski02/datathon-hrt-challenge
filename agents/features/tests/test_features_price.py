@@ -4,7 +4,6 @@ import unittest
 
 import numpy as np
 import pandas as pd
-
 from src.features_price import (
     build_price_features,
     build_test_set,

@@ -165,7 +165,9 @@ class AlwaysLong239HeadlineV3TemplatePriorStrategy:
         trend = f["trend_slope"].fillna(0.0)
         headline_risk = self._headline_risk_score(f["headline_text"])
         headline_positive = self._headline_positive_score(f["headline_text"])
-        template_prior_balance = self._session_template_prior_balance(train_split).reindex(train_split.sessions).fillna(0.0)
+        template_prior_balance = (
+            self._session_template_prior_balance(train_split).reindex(train_split.sessions).fillna(0.0)
+        )
 
         self._mu_vol = float(vol.mean())
         self._sd_vol = self._safe_std(vol)
@@ -206,7 +208,9 @@ class AlwaysLong239HeadlineV3TemplatePriorStrategy:
         trend = f["trend_slope"].fillna(0.0).to_numpy(dtype=float)
         headline_risk = self._headline_risk_score(f["headline_text"]).to_numpy(dtype=float)
         headline_positive = self._headline_positive_score(f["headline_text"]).to_numpy(dtype=float)
-        template_prior_balance = self._session_template_prior_balance(split).reindex(split.sessions).fillna(0.0).to_numpy(dtype=float)
+        template_prior_balance = (
+            self._session_template_prior_balance(split).reindex(split.sessions).fillna(0.0).to_numpy(dtype=float)
+        )
 
         z_vol = (vol - self._mu_vol) / self._sd_vol
         z_ret = (ret - self._mu_ret) / self._sd_ret

@@ -13,7 +13,6 @@ from pipeline.strategies.extra_trees_bad_tail_probability_rank_sizer import (
 from pipeline.strategies.model_risk_utils import build_risk_features
 from pipeline.types import SplitInput
 
-
 NUM_PAT = re.compile(
     r"(?:\$\s*)?\d+(?:[\.,]\d+)?\s*(?:[kmbt]|bn|mn|billion|million|thousand)?%?",
     re.I,
@@ -48,31 +47,78 @@ CANON_RULES: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"\b(enters\s+joint\s+venture\s+with)\s+.+$", re.I), r"\1 <PARTNER>"),
     (re.compile(r"\bin\s+.+\s+segment\b", re.I), "in <DOMAIN> segment"),
     (re.compile(r"\bof\s+.+\s+systems\b", re.I), "of <DOMAIN> systems"),
-    (re.compile(r"\bfor\s+regulatory\s+approval\s+of\s+new\s+.+\s+offering\b", re.I), "for regulatory approval of new <DOMAIN> offering"),
-    (re.compile(r"\bin\s+.+\s+line\s+due\s+to\s+quality\s+concerns\b", re.I), "in <DOMAIN> line due to quality concerns"),
+    (
+        re.compile(r"\bfor\s+regulatory\s+approval\s+of\s+new\s+.+\s+offering\b", re.I),
+        "for regulatory approval of new <DOMAIN> offering",
+    ),
+    (
+        re.compile(r"\bin\s+.+\s+line\s+due\s+to\s+quality\s+concerns\b", re.I),
+        "in <DOMAIN> line due to quality concerns",
+    ),
     (re.compile(r"\bof\s+.+\s+practices\b", re.I), "of <DOMAIN> practices"),
     (re.compile(r"\bfor\s+.+\s+unit\b", re.I), "for <DOMAIN> unit"),
     (re.compile(r"\bin\s+.+\s+pilot\s+program\b", re.I), "in <DOMAIN> pilot program"),
     (re.compile(r"\bfocus\s+on\s+.+$", re.I), "focus on <DOMAIN>"),
     (re.compile(r"\bfor\s+excellence\s+in\s+.+$", re.I), "for excellence in <DOMAIN>"),
-    (re.compile(r"\bfiles\s+routine\s+patent\s+applications\s+in\s+.+$", re.I), "files routine patent applications in <DOMAIN>"),
-    (re.compile(r"\breports\s+rising\s+costs\s+pressuring\s+margins\s+in\s+.+$", re.I), "reports rising costs pressuring margins in <DOMAIN>"),
+    (
+        re.compile(r"\bfiles\s+routine\s+patent\s+applications\s+in\s+.+$", re.I),
+        "files routine patent applications in <DOMAIN>",
+    ),
+    (
+        re.compile(r"\breports\s+rising\s+costs\s+pressuring\s+margins\s+in\s+.+$", re.I),
+        "reports rising costs pressuring margins in <DOMAIN>",
+    ),
     (re.compile(r"\blaunches\s+next-generation\s+.+\s+platform\b", re.I), "launches next-generation <DOMAIN> platform"),
     (re.compile(r"\bannounces\s+breakthrough\s+in\s+.+$", re.I), "announces breakthrough in <DOMAIN>"),
-    (re.compile(r"\bfaces\s+class\s+action\s+over\s+.+\s+service\s+disruption\b", re.I), "faces class action over <DOMAIN> service disruption"),
+    (
+        re.compile(r"\bfaces\s+class\s+action\s+over\s+.+\s+service\s+disruption\b", re.I),
+        "faces class action over <DOMAIN> service disruption",
+    ),
     (re.compile(r"\binto\s+.+\s+markets\b", re.I), "into <REGION> markets"),
     (re.compile(r"\bopens\s+new\s+office\s+in\s+.+$", re.I), "opens new office in <REGION>"),
-    (re.compile(r"\bannounces\s+significant\s+capital\s+expenditure\s+plan\s+for\s+.+$", re.I), "announces significant capital expenditure plan for <REGION>"),
-    (re.compile(r"\breports\s+strong\s+demand\s+in\s+.+,\s+raises\s+outlook\b", re.I), "reports strong demand in <REGION>, raises outlook"),
-    (re.compile(r"\bwarns\s+of\s+supply\s+chain\s+disruptions\s+affecting\s+.+\s+operations\b", re.I), "warns of supply chain disruptions affecting <REGION> operations"),
-    (re.compile(r"\bcompletes\s+planned\s+facility\s+upgrade\s+in\s+.+$", re.I), "completes planned facility upgrade in <REGION>"),
-    (re.compile(r"\bloses\s+key\s+contract\s+in\s+.+\s+to\s+competitor\b", re.I), "loses key contract in <REGION> to competitor"),
-    (re.compile(r"\breports\s+unexpected\s+decline\s+in\s+.+\s+revenue\b", re.I), "reports unexpected decline in <REGION> revenue"),
-    (re.compile(r"\bwithdraws\s+from\s+.+\s+market\s+citing\s+unfavorable\s+conditions\b", re.I), "withdraws from <REGION> market citing unfavorable conditions"),
+    (
+        re.compile(r"\bannounces\s+significant\s+capital\s+expenditure\s+plan\s+for\s+.+$", re.I),
+        "announces significant capital expenditure plan for <REGION>",
+    ),
+    (
+        re.compile(r"\breports\s+strong\s+demand\s+in\s+.+,\s+raises\s+outlook\b", re.I),
+        "reports strong demand in <REGION>, raises outlook",
+    ),
+    (
+        re.compile(r"\bwarns\s+of\s+supply\s+chain\s+disruptions\s+affecting\s+.+\s+operations\b", re.I),
+        "warns of supply chain disruptions affecting <REGION> operations",
+    ),
+    (
+        re.compile(r"\bcompletes\s+planned\s+facility\s+upgrade\s+in\s+.+$", re.I),
+        "completes planned facility upgrade in <REGION>",
+    ),
+    (
+        re.compile(r"\bloses\s+key\s+contract\s+in\s+.+\s+to\s+competitor\b", re.I),
+        "loses key contract in <REGION> to competitor",
+    ),
+    (
+        re.compile(r"\breports\s+unexpected\s+decline\s+in\s+.+\s+revenue\b", re.I),
+        "reports unexpected decline in <REGION> revenue",
+    ),
+    (
+        re.compile(r"\bwithdraws\s+from\s+.+\s+market\s+citing\s+unfavorable\s+conditions\b", re.I),
+        "withdraws from <REGION> market citing unfavorable conditions",
+    ),
     (re.compile(r"\bappoints\s+new\s+.+\s+to\s+board\b", re.I), "appoints new <ROLE> to board"),
     (re.compile(r"\bnames\s+new\s+head\s+of\s+.+\s+division\b", re.I), "names new head of <DOMAIN> division"),
-    (re.compile(r"\b(?:ceo|cfo|cto|chief\s+[a-z]+\s+officer)\s+steps\s+down\s+unexpectedly\s+citing\s+personal\s+reasons\b", re.I), "<ROLE> steps down unexpectedly citing personal reasons"),
-    (re.compile(r"\b(?:ceo|cfo|cto|chief\s+[a-z]+\s+officer)\s+addresses\s+investor\s+concerns\s+in\s+open\s+letter\b", re.I), "<ROLE> addresses investor concerns in open letter"),
+    (
+        re.compile(
+            r"\b(?:ceo|cfo|cto|chief\s+[a-z]+\s+officer)\s+steps\s+down\s+unexpectedly\s+citing\s+personal\s+reasons\b",
+            re.I,
+        ),
+        "<ROLE> steps down unexpectedly citing personal reasons",
+    ),
+    (
+        re.compile(
+            r"\b(?:ceo|cfo|cto|chief\s+[a-z]+\s+officer)\s+addresses\s+investor\s+concerns\s+in\s+open\s+letter\b", re.I
+        ),
+        "<ROLE> addresses investor concerns in open letter",
+    ),
 ]
 
 
@@ -154,7 +200,18 @@ class BtpRankTplStrategy(ExtraTreesBadTailProbabilityRankSizerStrategy):
 
     def _parse_headlines(self, split: SplitInput) -> pd.DataFrame:
         sessions = split.sessions
-        cols = ["session", "bar_ix", "headline", "template", "intent", "super_family", "prior_sign", "recency_exp_weight", "late", "recent3"]
+        cols = [
+            "session",
+            "bar_ix",
+            "headline",
+            "template",
+            "intent",
+            "super_family",
+            "prior_sign",
+            "recency_exp_weight",
+            "late",
+            "recent3",
+        ]
         if split.headlines.empty:
             return pd.DataFrame(columns=cols)
 
@@ -212,9 +269,19 @@ class BtpRankTplStrategy(ExtraTreesBadTailProbabilityRankSizerStrategy):
         global_value: float,
         col: str,
     ) -> pd.Series:
-        template_map = rows["template"].map(template_table[col]) if not template_table.empty else pd.Series(np.nan, index=rows.index)
-        intent_map = rows["intent"].map(intent_table[col]) if not intent_table.empty else pd.Series(np.nan, index=rows.index)
-        family_map = rows["super_family"].map(family_table[col]) if not family_table.empty else pd.Series(np.nan, index=rows.index)
+        template_map = (
+            rows["template"].map(template_table[col])
+            if not template_table.empty
+            else pd.Series(np.nan, index=rows.index)
+        )
+        intent_map = (
+            rows["intent"].map(intent_table[col]) if not intent_table.empty else pd.Series(np.nan, index=rows.index)
+        )
+        family_map = (
+            rows["super_family"].map(family_table[col])
+            if not family_table.empty
+            else pd.Series(np.nan, index=rows.index)
+        )
         return template_map.fillna(intent_map).fillna(family_map).fillna(float(global_value)).astype(float)
 
     @staticmethod
@@ -258,8 +325,12 @@ class BtpRankTplStrategy(ExtraTreesBadTailProbabilityRankSizerStrategy):
         last_rows = rows.groupby("session", sort=False).tail(1).set_index("session")
 
         out["tpl_headline_count"] = headline_count
-        out["tpl_late_count"] = late_rows.groupby("session", sort=False).size().reindex(sessions, fill_value=0).astype(float)
-        out["tpl_recent3_count"] = recent3_rows.groupby("session", sort=False).size().reindex(sessions, fill_value=0).astype(float)
+        out["tpl_late_count"] = (
+            late_rows.groupby("session", sort=False).size().reindex(sessions, fill_value=0).astype(float)
+        )
+        out["tpl_recent3_count"] = (
+            recent3_rows.groupby("session", sort=False).size().reindex(sessions, fill_value=0).astype(float)
+        )
         out["tpl_unmapped_share"] = self._safe_div(
             rows.groupby("session", sort=False)["is_unmapped"].sum().reindex(sessions, fill_value=0.0),
             headline_count,
@@ -277,14 +348,20 @@ class BtpRankTplStrategy(ExtraTreesBadTailProbabilityRankSizerStrategy):
         out["tpl_weight_sum"] = weight_sum.astype(float)
 
         weighted_return = (
-            rows["enc_return"] * row_weight
-        ).groupby(rows["session"], sort=False).sum().reindex(sessions, fill_value=0.0)
+            (rows["enc_return"] * row_weight)
+            .groupby(rows["session"], sort=False)
+            .sum()
+            .reindex(sessions, fill_value=0.0)
+        )
         weighted_up = (
-            rows["enc_up"] * row_weight
-        ).groupby(rows["session"], sort=False).sum().reindex(sessions, fill_value=0.0)
+            (rows["enc_up"] * row_weight).groupby(rows["session"], sort=False).sum().reindex(sessions, fill_value=0.0)
+        )
         weighted_bad = (
-            rows["enc_bad_tail"] * row_weight
-        ).groupby(rows["session"], sort=False).sum().reindex(sessions, fill_value=0.0)
+            (rows["enc_bad_tail"] * row_weight)
+            .groupby(rows["session"], sort=False)
+            .sum()
+            .reindex(sessions, fill_value=0.0)
+        )
 
         out["tpl_enc_return_mean"] = self._safe_div(weighted_return, weight_sum).astype(float)
         out["tpl_up_prob_mean"] = self._safe_div(weighted_up, weight_sum).astype(float)
@@ -292,14 +369,32 @@ class BtpRankTplStrategy(ExtraTreesBadTailProbabilityRankSizerStrategy):
         out["tpl_signal_balance"] = (out["tpl_up_prob_mean"] - out["tpl_bad_tail_prob_mean"]).astype(float)
 
         out["tpl_enc_return_last"] = last_rows["enc_return"].reindex(sessions).fillna(0.0).astype(float)
-        out["tpl_enc_return_recent3"] = recent3_rows.groupby("session", sort=False)["enc_return"].mean().reindex(sessions, fill_value=0.0).astype(float)
-        out["tpl_enc_return_late"] = late_rows.groupby("session", sort=False)["enc_return"].mean().reindex(sessions, fill_value=0.0).astype(float)
+        out["tpl_enc_return_recent3"] = (
+            recent3_rows.groupby("session", sort=False)["enc_return"]
+            .mean()
+            .reindex(sessions, fill_value=0.0)
+            .astype(float)
+        )
+        out["tpl_enc_return_late"] = (
+            late_rows.groupby("session", sort=False)["enc_return"]
+            .mean()
+            .reindex(sessions, fill_value=0.0)
+            .astype(float)
+        )
 
         out["tpl_positive_pressure"] = (
-            (rows["enc_return"].clip(lower=0.0) * row_weight).groupby(rows["session"], sort=False).sum().reindex(sessions, fill_value=0.0).astype(float)
+            (rows["enc_return"].clip(lower=0.0) * row_weight)
+            .groupby(rows["session"], sort=False)
+            .sum()
+            .reindex(sessions, fill_value=0.0)
+            .astype(float)
         )
         out["tpl_negative_pressure"] = (
-            ((-rows["enc_return"].clip(upper=0.0)) * row_weight).groupby(rows["session"], sort=False).sum().reindex(sessions, fill_value=0.0).astype(float)
+            ((-rows["enc_return"].clip(upper=0.0)) * row_weight)
+            .groupby(rows["session"], sort=False)
+            .sum()
+            .reindex(sessions, fill_value=0.0)
+            .astype(float)
         )
         out["tpl_recent3_positive_pressure"] = (
             (recent3_rows["enc_return"].clip(lower=0.0) * recent3_rows["recency_exp_weight"])
@@ -316,8 +411,15 @@ class BtpRankTplStrategy(ExtraTreesBadTailProbabilityRankSizerStrategy):
             .astype(float)
         )
 
-        out["tpl_strong_signal_count"] = rows.groupby("session", sort=False)["strong_signal"].sum().reindex(sessions, fill_value=0.0).astype(float)
-        out["tpl_strong_signal_late_count"] = late_rows.groupby("session", sort=False)["strong_signal"].sum().reindex(sessions, fill_value=0.0).astype(float)
+        out["tpl_strong_signal_count"] = (
+            rows.groupby("session", sort=False)["strong_signal"].sum().reindex(sessions, fill_value=0.0).astype(float)
+        )
+        out["tpl_strong_signal_late_count"] = (
+            late_rows.groupby("session", sort=False)["strong_signal"]
+            .sum()
+            .reindex(sessions, fill_value=0.0)
+            .astype(float)
+        )
 
         return out.fillna(0.0)
 
@@ -367,13 +469,13 @@ class BtpRankTplStrategy(ExtraTreesBadTailProbabilityRankSizerStrategy):
         enriched["is_positive_prior"] = (enriched["prior_sign"] > 0).astype(float)
         enriched["is_negative_prior"] = (enriched["prior_sign"] < 0).astype(float)
         enriched["strong_signal"] = (
-            (enriched["enc_up"] >= 0.60)
-            | (enriched["enc_bad_tail"] >= 0.60)
-            | (enriched["enc_return"].abs() >= 0.004)
+            (enriched["enc_up"] >= 0.60) | (enriched["enc_bad_tail"] >= 0.60) | (enriched["enc_return"].abs() >= 0.004)
         ).astype(float)
         return enriched
 
-    def _build_tables_for_rows(self, rows: pd.DataFrame, session_target: pd.Series, bad_tail_cutoff: float) -> dict[str, pd.DataFrame | float]:
+    def _build_tables_for_rows(
+        self, rows: pd.DataFrame, session_target: pd.Series, bad_tail_cutoff: float
+    ) -> dict[str, pd.DataFrame | float]:
         train_rows = rows.copy()
         target_map = session_target.astype(float)
         train_rows["target_return"] = train_rows["session"].map(target_map)

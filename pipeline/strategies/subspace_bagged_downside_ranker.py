@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
@@ -10,9 +11,9 @@ from sklearn.preprocessing import StandardScaler
 
 from pipeline.types import SplitInput
 
-
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_FEATURE_STORE_DIR = ROOT / "agents" / "features" / "feature_store"
+LOGGER = logging.getLogger(__name__)
 
 ReliabilityMode = Literal[
     "equal_rank_avg",
@@ -341,7 +342,7 @@ class SubspaceBaggedDownsideRankerStrategy:
 
         pruned_robust = float("nan") if self.pruned_result is None else float(self.pruned_result.robust_score)
 
-        print(
+        LOGGER.info(
             "[subspace-bagged-downside-ranker] "
             f"baseline_robust={self.baseline_result.robust_score:.4f}, "
             f"reliability_only_robust={self.reliability_only_result.robust_score:.4f}, "
@@ -350,7 +351,7 @@ class SubspaceBaggedDownsideRankerStrategy:
             f"pruned_robust={pruned_robust:.4f}"
         )
 
-        print(
+        LOGGER.info(
             "[subspace-bagged-downside-ranker] "
             f"selected_tag={selected.tag}, config={selected.config.name}, "
             f"heads={len(selected.config.head_indices)}, "
@@ -360,7 +361,7 @@ class SubspaceBaggedDownsideRankerStrategy:
             f"std_cv_sharpe={selected.std_sharpe:.4f}, "
             f"robust_score={selected.robust_score:.4f}"
         )
-        print(
+        LOGGER.info(
             "[subspace-bagged-downside-ranker] "
             f"selected_per_repeat_sharpes={','.join(f'{value:.4f}' for value in selected.per_repeat_sharpes)}"
         )
@@ -447,8 +448,7 @@ class SubspaceBaggedDownsideRankerStrategy:
         equal_weights = np.full(n_heads, 1.0 / float(n_heads), dtype=float)
 
         equal_ensemble_repeat = [
-            np.average(artifact.oof_head_rank, axis=0, weights=equal_weights)
-            for artifact in cv_artifacts
+            np.average(artifact.oof_head_rank, axis=0, weights=equal_weights) for artifact in cv_artifacts
         ]
 
         diagnostics: list[HeadDiagnostic] = []
@@ -678,7 +678,9 @@ class SubspaceBaggedDownsideRankerStrategy:
         if consensus.disagreement_std_threshold is not None:
             noisy = rank_std >= float(consensus.disagreement_std_threshold)
             center_ix = len(template.positions) // 2
-            move_toward_center = np.where(bucket < center_ix, bucket + 1, np.where(bucket > center_ix, bucket - 1, bucket))
+            move_toward_center = np.where(
+                bucket < center_ix, bucket + 1, np.where(bucket > center_ix, bucket - 1, bucket)
+            )
             bucket[noisy] = move_toward_center[noisy]
             positions[noisy] = np.asarray(template.positions, dtype=float)[bucket[noisy]]
 
@@ -768,7 +770,9 @@ class SubspaceBaggedDownsideRankerStrategy:
         eval_prob = model.predict_proba(x_eval_scaled)[:, 1]
         return train_prob, eval_prob
 
-    def _fit_heads_full_data(self, x_train: pd.DataFrame, y_values: np.ndarray, head_specs: tuple[HeadSpec, ...]) -> list[TrainedHead]:
+    def _fit_heads_full_data(
+        self, x_train: pd.DataFrame, y_values: np.ndarray, head_specs: tuple[HeadSpec, ...]
+    ) -> list[TrainedHead]:
         trained: list[TrainedHead] = []
 
         for head in head_specs:
@@ -902,12 +906,7 @@ class SubspaceBaggedDownsideRankerStrategy:
         n_heads = 12
         row_subsample = 0.70
 
-        seed = (
-            self.random_state
-            + 701 * n_heads
-            + int(round(row_subsample * 100.0)) * 19
-            + 1237
-        )
+        seed = self.random_state + 701 * n_heads + int(round(row_subsample * 100.0)) * 19 + 1237
 
         rng = np.random.default_rng(seed)
         subspace_names = sorted(subspace_library.keys())

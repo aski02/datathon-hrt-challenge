@@ -67,7 +67,9 @@ class BtpRankHdocStrategy(BtpRankTplStrategy):
                 intent_parts.extend([row.intent_token] * int(row.repeat_count))
 
             transitions: list[str] = []
-            for prev_row, next_row in zip(ordered.itertuples(index=False), ordered.iloc[1:].itertuples(index=False), strict=False):
+            for prev_row, next_row in zip(
+                ordered.itertuples(index=False), ordered.iloc[1:].itertuples(index=False), strict=False
+            ):
                 transition = f"{prev_row.intent_token}__to__{next_row.intent_token}"
                 transitions.extend([transition] * max(int(next_row.repeat_count), 1))
 
@@ -95,7 +97,13 @@ class BtpRankHdocStrategy(BtpRankTplStrategy):
         docs.update(rendered.reindex(sessions))
         for col in ["template_doc", "intent_doc", "transition_doc", "late_doc"]:
             docs[col] = docs[col].fillna("")
-        for col in ["headline_count", "late_count", "unique_template_count", "unique_intent_count", "headline_last_bar_norm"]:
+        for col in [
+            "headline_count",
+            "late_count",
+            "unique_template_count",
+            "unique_intent_count",
+            "headline_last_bar_norm",
+        ]:
             docs[col] = docs[col].fillna(0.0).astype(float)
         return docs
 
@@ -200,7 +208,9 @@ class BtpRankHdocStrategy(BtpRankTplStrategy):
         feature_frame["hdoc_combo_return"] = (
             0.5 * feature_frame["hdoc_ret_tpl"] + 0.5 * feature_frame["hdoc_ret_trans"]
         ).astype(float)
-        feature_frame["hdoc_abs_gate"] = np.maximum(np.abs(feature_frame["hdoc_signal_spread"]) - 0.15, 0.0).astype(float)
+        feature_frame["hdoc_abs_gate"] = np.maximum(np.abs(feature_frame["hdoc_signal_spread"]) - 0.15, 0.0).astype(
+            float
+        )
         feature_frame["hdoc_late_gate"] = np.maximum(feature_frame["hdoc_bad_tail_prob"] - 0.55, 0.0).astype(float)
         feature_frame["hdoc_pos_gate"] = np.maximum(feature_frame["hdoc_up_prob"] - 0.55, 0.0).astype(float)
         feature_frame["hdoc_recent_strength"] = (
@@ -248,7 +258,9 @@ class BtpRankHdocStrategy(BtpRankTplStrategy):
         feature_frame["hdoc_combo_return"] = (
             0.5 * feature_frame["hdoc_ret_tpl"] + 0.5 * feature_frame["hdoc_ret_trans"]
         ).astype(float)
-        feature_frame["hdoc_abs_gate"] = np.maximum(np.abs(feature_frame["hdoc_signal_spread"]) - 0.15, 0.0).astype(float)
+        feature_frame["hdoc_abs_gate"] = np.maximum(np.abs(feature_frame["hdoc_signal_spread"]) - 0.15, 0.0).astype(
+            float
+        )
         feature_frame["hdoc_late_gate"] = np.maximum(feature_frame["hdoc_bad_tail_prob"] - 0.55, 0.0).astype(float)
         feature_frame["hdoc_pos_gate"] = np.maximum(feature_frame["hdoc_up_prob"] - 0.55, 0.0).astype(float)
         feature_frame["hdoc_recent_strength"] = (

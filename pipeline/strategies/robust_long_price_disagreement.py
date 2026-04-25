@@ -61,9 +61,9 @@ class RobustLongPriceDisagreementStrategy:
 
         global_prior = float(train_target_return.mean())
         stats = rows.groupby("body")["target_return"].agg(["mean", "count"])
-        stats["score"] = (
-            stats["mean"] * stats["count"] + global_prior * self.body_prior_count
-        ) / (stats["count"] + self.body_prior_count)
+        stats["score"] = (stats["mean"] * stats["count"] + global_prior * self.body_prior_count) / (
+            stats["count"] + self.body_prior_count
+        )
 
         self._body_score = stats["score"]
         self._global_prior = global_prior

@@ -204,10 +204,15 @@ class ExtraTreesBadTailProbabilitySizerCatalogLiteStrategy(BaseClassifierSizedLo
             g = frame.groupby("session", sort=False)
             prior_sum = g["prior_sign"].sum().reindex(sessions, fill_value=0.0).astype(float)
             prior_count = g.size().reindex(sessions, fill_value=0).astype(float)
-            sign_counts = frame.assign(
-                pos=(frame["prior_sign"] > 0).astype(int),
-                neg=(frame["prior_sign"] < 0).astype(int),
-            ).groupby("session")[["pos", "neg"]].sum().reindex(sessions, fill_value=0)
+            sign_counts = (
+                frame.assign(
+                    pos=(frame["prior_sign"] > 0).astype(int),
+                    neg=(frame["prior_sign"] < 0).astype(int),
+                )
+                .groupby("session")[["pos", "neg"]]
+                .sum()
+                .reindex(sessions, fill_value=0)
+            )
             balance = prior_sum / np.sqrt(prior_count.clip(lower=1.0))
             disagreement = np.minimum(sign_counts["pos"], sign_counts["neg"]) / prior_count.clip(lower=1.0)
             return balance.astype(float), disagreement.astype(float)
@@ -221,8 +226,8 @@ class ExtraTreesBadTailProbabilitySizerCatalogLiteStrategy(BaseClassifierSizedLo
         last_intent.index = last_rows.index
         last_intent = last_intent.reindex(sessions, fill_value=0.0)
 
-        last_super_family = (
-            pd.get_dummies(last_rows["super_family"]).reindex(columns=self._super_family_labels, fill_value=0.0)
+        last_super_family = pd.get_dummies(last_rows["super_family"]).reindex(
+            columns=self._super_family_labels, fill_value=0.0
         )
         last_super_family.index = last_rows.index
         last_super_family = last_super_family.reindex(sessions, fill_value=0.0)

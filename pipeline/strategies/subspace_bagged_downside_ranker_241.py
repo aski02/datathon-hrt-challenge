@@ -10,7 +10,6 @@ from sklearn.preprocessing import StandardScaler
 
 from pipeline.types import SplitInput
 
-
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_FEATURE_STORE_DIR = ROOT / "agents" / "features" / "feature_store"
 
@@ -547,7 +546,9 @@ class SubspaceBaggedDownsideRankerStrategy:
         if not np.isclose(cand_c_span, inc_c_span, atol=1e-12):
             return False
 
-        return self._template_complexity(candidate.mapping_template) < self._template_complexity(incumbent.mapping_template)
+        return self._template_complexity(candidate.mapping_template) < self._template_complexity(
+            incumbent.mapping_template
+        )
 
     @staticmethod
     def _template_complexity(template: MappingTemplate) -> float:
@@ -651,7 +652,9 @@ class SubspaceBaggedDownsideRankerStrategy:
         eval_prob = model.predict_proba(x_eval_scaled)[:, 1]
         return train_prob, eval_prob
 
-    def _fit_heads_full_data(self, x_train: pd.DataFrame, y_values: np.ndarray, candidate: CandidateConfig) -> list[TrainedHead]:
+    def _fit_heads_full_data(
+        self, x_train: pd.DataFrame, y_values: np.ndarray, candidate: CandidateConfig
+    ) -> list[TrainedHead]:
         trained: list[TrainedHead] = []
 
         for head in candidate.heads:
